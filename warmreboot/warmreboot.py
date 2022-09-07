@@ -14,7 +14,8 @@ def server_reboot():
     os.system(COMMAND)
 
 def create_reboot_service():
-    ser_str= '''[Unit]
+    ser_str= '''#!/usr/bin/env python3
+[Unit]
 Description=Startup Script
 
 [Service]
@@ -24,15 +25,16 @@ Restart=always
 ExecStart={}
 
 [Install]
-WantedBy=multi-user.target'''.format(os.path.dirname(os.path.abspath(__file__)))
+WantedBy=multi-user.target'''.format(os.path.abspath(__file__))
 
     with open(os.path.join(SERVICE_FILE_PATH, SERVICE_FILE), 'w') as f:
         f.write(ser_str)
         f.close()
 
     subprocess.call(['chmod', '0777', os.path.join(SERVICE_FILE_PATH, SERVICE_FILE)])
+    subprocess.run(('sudo systemctl daemon-reload'), shell=True, check=True)
     subprocess.run(('systemctl enable' + ' ' + SERVICE_FILE), shell=True, check=True)
-
+    subprocess.run(('systemctl start' + ' ' + SERVICE_FILE), shell=True, check=True)
 
 def write_pkl_file(reboot_data):
     with open(os.path.join(CUR_DIR, REBOOT_LOGGER_PKLFILE), 'wb') as f:
@@ -45,7 +47,10 @@ def read_pkl_file():
         f.close()
     return reboot_params
 
+
 if __name__ == "__main__":
+
+    subprocess.call(['chmod', '0777', os.path.abspath(__file__)])
 
     try:
         reboot_params = read_pkl_file()
